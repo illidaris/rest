@@ -10,6 +10,17 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.dll
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+go.sum
+
+config.toml
+config.*.toml
+
+include/
+lib/
+
+.idea/
+.vs/
+.vscode/
+logs/
