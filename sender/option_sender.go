@@ -51,7 +51,7 @@ func WithTimeout(timeout time.Duration) Option {
 	})
 }
 
-func WithBefore(b ...HandlerFunc) Option {
+func WithHandler(b ...HandlerFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		if o.handlers == nil {
 			o.handlers = make([]HandlerFunc, 0)
