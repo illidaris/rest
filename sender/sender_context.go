@@ -17,7 +17,8 @@ type SenderContext struct {
 }
 
 func (c *SenderContext) Next() {
-	for c.index < int8(len(c.handlers)) {
+	c.index++
+	if c.index < int8(len(c.handlers)) {
 		c.handlers[c.index](c)
 		c.index++
 	}
@@ -29,7 +30,7 @@ func (c *SenderContext) Abort() {
 
 func NewSenderContext(req *http.Request) *SenderContext {
 	return &SenderContext{
-		index:    0,
+		index:    -1,
 		handlers: []HandlerFunc{},
 		Request:  req,
 	}
