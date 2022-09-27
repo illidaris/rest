@@ -17,7 +17,6 @@ type SenderContext struct {
 }
 
 func (c *SenderContext) Next() {
-	c.index++
 	for c.index < int8(len(c.handlers)) {
 		c.handlers[c.index](c)
 		c.index++

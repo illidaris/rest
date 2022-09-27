@@ -13,9 +13,10 @@ import (
 
 func NewSender(opts ...Option) *Sender {
 	sopts := sendOptions{
-		Client:  http.DefaultClient,
-		Timeout: time.Second * 5,
-		l:       &log.DefaultLogger{},
+		Client:   http.DefaultClient,
+		Timeout:  time.Second * 5,
+		l:        &log.DefaultLogger{},
+		handlers: []HandlerFunc{},
 	}
 
 	for _, o := range opts {
