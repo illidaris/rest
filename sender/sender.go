@@ -7,16 +7,14 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/illidaris/rest/log"
 )
 
 func NewSender(opts ...Option) *Sender {
 	sopts := sendOptions{
 		Client:   http.DefaultClient,
 		Timeout:  time.Second * 5,
-		l:        &log.DefaultLogger{},
 		handlers: []HandlerFunc{},
+		l:        defaultLogger,
 	}
 
 	for _, o := range opts {
