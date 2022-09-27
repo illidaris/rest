@@ -68,8 +68,10 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
+	// exec handlers
+	sc.handlers = append(sc.handlers, o.opts.handlers...)
 	// exec do
-	o.opts.handlers = append(o.opts.handlers, o.do)
+	sc.handlers = append(sc.handlers, o.do)
 	sc.Next()
 	// parse reponse to bs
 	respbs, err := ParseResponse(sc.Response)
