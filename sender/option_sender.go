@@ -33,6 +33,12 @@ func WithClient(c *http.Client) Option {
 	})
 }
 
+func WithLogger(logger log.ILogger) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.l = logger
+	})
+}
+
 func WithHost(h string) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.Host = h
