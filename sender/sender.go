@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -45,7 +46,11 @@ func (o *Sender) newSenderContext(ctx context.Context, request IRequest) (*Sende
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, request.GetMethod(), fullUrl, bytes.NewBuffer(reqbs))
+	var body io.Reader
+	if len(reqbs) > 0 {
+		body = bytes.NewBuffer(reqbs)
+	}
+	req, err := http.NewRequestWithContext(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
 	}
