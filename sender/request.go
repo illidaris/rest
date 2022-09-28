@@ -2,7 +2,7 @@ package sender
 
 type IRequest interface {
 	GetContentType() string
-	GetResponse() IResponse
+	GetResponse() interface{}
 	GetMethod() string
 	GetAction() string
 	Encode() ([]byte, error)
@@ -10,5 +10,5 @@ type IRequest interface {
 }
 
 type Request struct {
-	Response IResponse
+	Response interface{}
 }

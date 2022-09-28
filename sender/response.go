@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-type IResponse interface{}
-
 func ParseResponse(resp *http.Response) ([]byte, error) {
 	respbs := []byte{}
 	if resp == nil {
