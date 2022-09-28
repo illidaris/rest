@@ -14,6 +14,7 @@ type SenderContext struct {
 	handlers []HandlerFunc
 	Request  *http.Request
 	Response *http.Response
+	err      error
 }
 
 func (c *SenderContext) Next() {

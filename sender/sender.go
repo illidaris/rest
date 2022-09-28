@@ -34,6 +34,8 @@ func (o *Sender) do(sc *SenderContext) {
 	res, err := o.opts.Client.Do(sc.Request)
 	sc.Response = res
 	if err != nil {
+		sc.err = err
+		sc.Abort()
 		o.opts.l.ErrorCtx(sc.Request.Context(), err.Error())
 	}
 }
@@ -72,6 +74,9 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	// exec do
 	sc.handlers = append(sc.handlers, o.do)
 	sc.Next()
+	if sc.err != nil {
+		return nil, sc.err
+	}
 	// parse reponse to bs
 	respbs, err := ParseResponse(sc.Response)
 	if err != nil {
