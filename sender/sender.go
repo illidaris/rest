@@ -16,6 +16,7 @@ func NewSender(opts ...Option) *Sender {
 		handlers: []HandlerFunc{},
 		l:        defaultLogger,
 	}
+	sopts.header = map[string][]string{}
 
 	for _, o := range opts {
 		o.apply(&sopts)
