@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
+
+	"github.com/illidaris/rest/signature"
+	"github.com/spf13/cast"
 )
 
 func NewSender(opts ...Option) *Sender {
@@ -42,22 +46,59 @@ func (o *Sender) do(sc *SenderContext) {
 }
 
 // newSenderContext new a sender conetxt,
-func (o *Sender) newSenderContext(ctx context.Context, request IRequest) (*SenderContext, error) {
+func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*SenderContext, error) {
 	fullUrl := fmt.Sprintf("%s/%s", o.opts.Host, request.GetAction())
 	reqbs, err := request.Encode()
 	if err != nil {
 		return nil, err
 	}
-	var body io.Reader
-	if len(reqbs) > 0 {
-		body = bytes.NewBuffer(reqbs)
+	var signData signature.Signature
+	// enable sign
+	if o.opts.signSet > 0 {
+		signData, err = o.opts.signGenerate(request.GetMethod(), request.GetContentType(), request.GetAction(), reqbs)
+		if err != nil {
+			return nil, err
+		}
 	}
+	// queries
+	rawQuery := url.Values{}
+	var body io.Reader
+	// if has param data
+	if len(reqbs) > 0 {
+		// GET param write to url
+		if request.GetMethod() == http.MethodGet {
+			paramStr := string(reqbs)
+			us, err := url.ParseQuery(paramStr)
+			if err != nil {
+				return nil, err
+			} else {
+				rawQuery = us
+			}
+		} else { // GET param write to body
+			body = bytes.NewBuffer(reqbs)
+		}
+	}
+	// if has sign
+	if o.opts.signSet == SignSetlInURL && signData != nil {
+		rawQuery.Add(signature.SignKeySign, signData.GetSign())
+		rawQuery.Add(signature.SignKeyNoise, signData.GetNoise())
+		rawQuery.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+	}
+	if len(rawQuery) > 0 {
+		fullUrl = fmt.Sprintf("%s?%s", fullUrl, string(rawQuery.Encode()))
+	}
+
 	req, err := http.NewRequestWithContext(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
 	}
 	// build headers
 	o.opts.AppendHeader(req)
+	if o.opts.signSet == SignSetInHead && signData != nil {
+		req.Header.Add(signature.SignKeySign, signData.GetSign())
+		req.Header.Add(signature.SignKeyNoise, signData.GetNoise())
+		req.Header.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+	}
 	return NewSenderContext(req), nil
 }
 
@@ -66,7 +107,7 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	subCtx, cancel := context.WithTimeout(ctx, o.opts.Timeout)
 	defer cancel()
 	// build newSenderContext
-	sc, err := o.newSenderContext(subCtx, request)
+	sc, err := o.NewSenderContext(subCtx, request)
 	if err != nil {
 		return nil, err
 	}

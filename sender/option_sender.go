@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/illidaris/rest/log"
+	"github.com/illidaris/rest/signature"
 )
 
 type optionFunc func(*sendOptions)
@@ -18,12 +19,13 @@ func (f optionFunc) apply(o *sendOptions) {
 }
 
 type sendOptions struct {
-	l       log.ILogger
-	Client  *http.Client
-	Host    string
-	Timeout time.Duration
-
-	handlers []HandlerFunc
+	l            log.ILogger
+	signSet      SignSetMode
+	signGenerate signature.GenerateFunc
+	Client       *http.Client
+	Host         string
+	Timeout      time.Duration
+	handlers     []HandlerFunc
 	headerOption
 }
 
@@ -36,6 +38,13 @@ func WithClient(c *http.Client) Option {
 func WithLogger(logger log.ILogger) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.l = logger
+	})
+}
+
+func WithSignSetMode(set SignSetMode, f signature.GenerateFunc) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.signSet = set
+		o.signGenerate = f
 	})
 }
 
