@@ -9,10 +9,11 @@ import (
 type OptionFunc func(*option)
 
 type option struct {
-	secret    string                                       // Secret
-	expire    time.Duration                                //  | Now - Timestamp  | < Expire
-	noiseFunc func() string                                // noise string, generate n0ise
-	hmacFunc  func(secret string, rawArr ...string) string // hmac func
+	secret       string                                       // Secret
+	expire       time.Duration                                //  | Now - Timestamp  | < Expire
+	noiseFunc    func() string                                // noise string, generate n0ise
+	hmacFunc     func(secret string, rawArr ...string) string // hmac func
+	unSignedKeys []string                                     // no signed key
 }
 
 func (o *option) HMac(rawArr ...string) string {
@@ -32,10 +33,11 @@ func (o *option) Noise() string {
 
 func NewOption() *option {
 	return &option{
-		secret:    "",
-		expire:    time.Minute * 2,
-		noiseFunc: DefaultNoiseRand,
-		hmacFunc:  HashMacSha1,
+		secret:       "",
+		expire:       time.Minute * 2,
+		noiseFunc:    DefaultNoiseRand,
+		hmacFunc:     HashMacSha1,
+		unSignedKeys: []string{},
 	}
 }
 
@@ -54,6 +56,12 @@ func WithExpire(v time.Duration) OptionFunc {
 func WithNoiseFunc(f func() string) OptionFunc {
 	return func(opt *option) {
 		opt.noiseFunc = f
+	}
+}
+
+func WithUnSignedKey(v ...string) OptionFunc {
+	return func(opt *option) {
+		opt.unSignedKeys = append(opt.unSignedKeys, v...)
 	}
 }
 

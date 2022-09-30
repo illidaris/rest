@@ -39,6 +39,11 @@ func Generate(method, contentType, action string, reqbs []byte, opts ...OptionFu
 	rawValues.Add(SignKeyTimestamp, cast.ToString(result.Timestamp))
 	rawValues.Add(SignKeyNoise, result.Noise)
 
+	// filter no signed key
+	for _, v := range signOpt.unSignedKeys {
+		rawValues.Del(v)
+	}
+
 	// format data
 	rawArr := []string{method, url.QueryEscape(action), url.QueryEscape(rawValues.Encode())}
 	result.Sign = signOpt.HMac(rawArr...)

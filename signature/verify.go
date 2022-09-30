@@ -50,6 +50,10 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	if len(action) > 0 {
 		action = req.URL.Path[1:]
 	}
+	// filter no signed key
+	for _, v := range signOpt.unSignedKeys {
+		params.Del(v)
+	}
 	rawArr := []string{req.Method, url.QueryEscape(action), url.QueryEscape(params.Encode())}
 	rightSign := signOpt.HMac(rawArr...)
 	if rightSign != signFrmRquest.GetSign() {
