@@ -104,7 +104,7 @@ signature = hamc( [HTTP.Method: POST] + URLEncode([URL.Path: api/v1/product]) + 
 
 1. method == `GET`:
 ```
-    a1=1Noise=aXf2dc&r1=1&Ts=1664523204&z1=1
+    Noise=aXf2dc&Ts=1664523204&a1=1&r1=1&z1=1
 ```
 2. method !=`GET` && json-content:
 ```
@@ -112,5 +112,36 @@ signature = hamc( [HTTP.Method: POST] + URLEncode([URL.Path: api/v1/product]) + 
 ```
 3. method !=`GET` && url-content:
 ```
-    a1=1Noise=aXf2dc&r1=1&Ts=1664523204&z1=1
+    Noise=aXf2dc&Ts=1664523204&a1=1&r1=1&z1=1
+```
+
+#### example:
+
+1. application/x-www-form-urlencoded
+```text
+api/report/third/daily
+
+
+Noise=abcdef&Ts=1664525726&begin=1662911996&country_id=-1&game_id=6&page=1&page_size=10&region_id=-1
+```
+
+2. URL Encode
+
+```text
+api%2Freport%2Fthird%2Fdaily
+
+
+Noise%3Dabcdef%26Ts%3D1664525726%26begin%3D1662911996%26country_id%3D-1%26game_id%3D6%26page%3D1%26page_size%3D10%26region_id%3D-1Noise=abcdef&Ts=1664525726&begin=1662911996&country_id=-1&game_id=6&page=1&page_size=10&region_id=-1
+```
+
+3. Link with `&`
+
+```
+POST&api%2Freport%2Fthird%2Fdaily&Noise%3Dabcdef%26Ts%3D1664525726%26begin%3D1662911996%26country_id%3D-1%26game_id%3D6%26page%3D1%26page_size%3D10%26region_id%3D-1
+```
+
+4. HMac, use secret key `NDJ7pv-PE00DnTyWIDdl_BElDRb1Q8sWWd59zT2QxRw`
+
+```
+28988857D8FCF05EF5A82DDE517D108707D87188
 ```
