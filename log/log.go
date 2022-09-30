@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var _ = ILogger(&DefaultLogger{})
+
 type ILogger interface {
 	DebugCtx(ctx context.Context, msg string)
 	InfoCtx(ctx context.Context, msg string)

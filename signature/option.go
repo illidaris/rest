@@ -32,12 +32,10 @@ func (o *option) Noise() string {
 
 func NewOption() *option {
 	return &option{
-		secret: "",
-		expire: time.Minute * 2,
-		noiseFunc: func() string {
-			return "noise"
-		},
-		hmacFunc: HashMacSha1,
+		secret:    "",
+		expire:    time.Minute * 2,
+		noiseFunc: DefaultNoiseRand,
+		hmacFunc:  HashMacSha1,
 	}
 }
 

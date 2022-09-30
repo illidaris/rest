@@ -17,7 +17,6 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	for _, opt := range opts {
 		opt(signOpt)
 	}
-
 	contentType := req.Header.Get("Content-Type")
 	// take sign data from request
 	signFrmRquest := NewSignatureFrmRequest(req) // sign data from request
@@ -46,7 +45,12 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	params.Add(SignKeyTimestamp, cast.ToString(signFrmRquest.GetTimestamp()))
 	params.Add(SignKeyNoise, signFrmRquest.GetNoise())
 	// format data
-	rawArr := []string{req.Method, url.QueryEscape(req.URL.Path[1:]), url.QueryEscape(params.Encode())}
+	action := req.URL.Path
+	// /api/test => api/test
+	if len(action) > 0 {
+		action = req.URL.Path[1:]
+	}
+	rawArr := []string{req.Method, url.QueryEscape(action), url.QueryEscape(params.Encode())}
 	rightSign := signOpt.HMac(rawArr...)
 	if rightSign != signFrmRquest.GetSign() {
 		return errors.New("sign is error")
