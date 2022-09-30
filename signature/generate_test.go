@@ -6,7 +6,7 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	_, err := Generate(http.MethodGet, "", "abc", []byte("a=b&c=d"), WithGenerateSecret("asdasdasdasdasdasdasdas"))
+	_, err := Generate(http.MethodGet, "", "abc", []byte("a=b&c=d"), WithSecret("asdasdasdasdasdasdasdas"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -14,6 +14,6 @@ func TestGenerate(t *testing.T) {
 
 func BenchmarkGenerate(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Generate(http.MethodGet, "", "abc", []byte("a=b&c=d"), WithGenerateSecret("asdasdasdasdasdasdasdas"))
+		Generate(http.MethodGet, "", "abc", []byte("a=b&c=d"), WithSecret("asdasdasdasdasdasdasdas"))
 	}
 }
