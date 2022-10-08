@@ -29,7 +29,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 		req.ParseForm()
 		us := req.Form
 		for k, v := range us {
-			if k != SignKeySign && k != SignKeyNoise && k != SignKeyTimestamp {
+			if k != SignKeySign && k != SignKeyNoise && k != SignKeyTimestamp && k != SignAppID {
 				params[k] = v
 			}
 		}
@@ -44,6 +44,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	}
 	params.Add(SignKeyTimestamp, cast.ToString(signFrmRquest.GetTimestamp()))
 	params.Add(SignKeyNoise, signFrmRquest.GetNoise())
+	params.Add(SignAppID, signFrmRquest.GetAppID())
 	// format data
 	action := req.URL.Path
 	// /api/test => api/test

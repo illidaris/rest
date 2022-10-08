@@ -21,17 +21,25 @@ func (f optionFunc) apply(o *sendOptions) {
 type sendOptions struct {
 	l            log.ILogger
 	signSet      SignSetMode
+	signSecret   string
 	signGenerate signature.GenerateFunc
-	Client       *http.Client
-	Host         string
-	Timeout      time.Duration
+	client       *http.Client
+	appID        string
+	host         string
+	timeout      time.Duration
 	handlers     []HandlerFunc
 	headerOption
 }
 
+func WithAppID(v string) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.appID = v
+	})
+}
+
 func WithClient(c *http.Client) Option {
 	return optionFunc(func(o *sendOptions) {
-		o.Client = c
+		o.client = c
 	})
 }
 
@@ -41,16 +49,17 @@ func WithLogger(logger log.ILogger) Option {
 	})
 }
 
-func WithSignSetMode(set SignSetMode, f signature.GenerateFunc) Option {
+func WithSignSetMode(set SignSetMode, secret string, f signature.GenerateFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.signSet = set
+		o.signSecret = secret
 		o.signGenerate = f
 	})
 }
 
 func WithHost(h string) Option {
 	return optionFunc(func(o *sendOptions) {
-		o.Host = h
+		o.host = h
 	})
 }
 
@@ -62,7 +71,7 @@ func WithHeader(k, v string) Option {
 
 func WithTimeout(timeout time.Duration) Option {
 	return optionFunc(func(o *sendOptions) {
-		o.Timeout = timeout
+		o.timeout = timeout
 	})
 }
 

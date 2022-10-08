@@ -69,7 +69,7 @@ func StudentGetHttpSignInHead(ctx context.Context, host string, student StudentR
 
 	s := sender.NewSender(
 		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
-		sender.WithSignSetMode(sender.SignSetInHead, signature.Generate),
+		sender.WithSignSetMode(sender.SignSetInHead, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)
@@ -83,7 +83,7 @@ func StudentGetHttpSignInURL(ctx context.Context, host string, student StudentRe
 	}
 	s := sender.NewSender(
 		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
-		sender.WithSignSetMode(sender.SignSetlInURL, signature.Generate),
+		sender.WithSignSetMode(sender.SignSetlInURL, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)

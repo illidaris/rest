@@ -16,7 +16,7 @@ var mockDb = map[uint64]Student{
 }
 
 func StudentGet(w http.ResponseWriter, r *http.Request) {
-	err := signature.VerifySign(r)
+	err := signature.VerifySign(r, signature.WithSecret("aa"))
 	result := &StudentResponse{}
 	if err != nil {
 		result.Code = -2

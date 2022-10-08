@@ -10,6 +10,7 @@ type Signature interface {
 	GetSign() string
 	GetTimestamp() int64
 	GetNoise() string
+	GetAppID() string
 }
 
 func NewSignatureFrmRequest(req *http.Request) Signature {
@@ -24,13 +25,21 @@ func NewSignatureFrmRequest(req *http.Request) Signature {
 	if signFrmRquest.Noise = urlVs.Get(SignKeyNoise); signFrmRquest.Noise == "" {
 		signFrmRquest.Noise = req.Header.Get(SignKeyNoise)
 	}
+	if signFrmRquest.AppID = urlVs.Get(SignAppID); signFrmRquest.AppID == "" {
+		signFrmRquest.AppID = req.Header.Get(SignAppID)
+	}
 	return signFrmRquest
 }
 
 type DefaultSignature struct {
+	AppID     string
 	Sign      string
 	Timestamp int64
 	Noise     string
+}
+
+func (s *DefaultSignature) GetAppID() string {
+	return s.AppID
 }
 
 func (s *DefaultSignature) GetSign() string {

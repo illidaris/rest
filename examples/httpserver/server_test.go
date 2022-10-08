@@ -31,9 +31,8 @@ func TestStudentGetHttpRequest(t *testing.T) {
 			convey.So(response.StatusCode, convey.ShouldEqual, http.StatusOK)
 			reader := response.Body
 			defer reader.Close()
-			bs, err := ioutil.ReadAll(reader)
-			convey.So(err, convey.ShouldBeNil)
-			println(string(bs))
+			_, err := ioutil.ReadAll(reader)
+			convey.So(err, convey.ShouldBeError)
 		})
 	})
 }

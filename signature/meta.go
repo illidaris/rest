@@ -10,13 +10,14 @@ import (
 )
 
 const (
+	SignAppID        string = "AppID"
 	SignKeySign      string = "Sign"
 	SignKeyTimestamp string = "Ts"
 	SignKeyNoise     string = "Noise"
 	SignBody         string = "Body"
 )
 
-type GenerateFunc func(string, string, string, []byte, ...OptionFunc) (Signature, error)
+type GenerateFunc func(string, string, string, string, []byte, ...OptionFunc) (Signature, error)
 
 func HashMacSha1(secret string, rawArr ...string) string {
 	raw := strings.Join(rawArr, "&")

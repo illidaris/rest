@@ -15,8 +15,8 @@ import (
 
 func NewSender(opts ...Option) *Sender {
 	sopts := sendOptions{
-		Client:   http.DefaultClient,
-		Timeout:  time.Second * 5,
+		client:   http.DefaultClient,
+		timeout:  time.Second * 5,
 		handlers: []HandlerFunc{},
 		l:        defaultLogger,
 	}
@@ -36,7 +36,7 @@ type Sender struct {
 }
 
 func (o *Sender) do(sc *SenderContext) {
-	res, err := o.opts.Client.Do(sc.Request)
+	res, err := o.opts.client.Do(sc.Request)
 	sc.Response = res
 	if err != nil {
 		sc.err = err
@@ -47,7 +47,7 @@ func (o *Sender) do(sc *SenderContext) {
 
 // newSenderContext new a sender conetxt,
 func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*SenderContext, error) {
-	fullUrl := fmt.Sprintf("%s/%s", o.opts.Host, request.GetAction())
+	fullUrl := fmt.Sprintf("%s/%s", o.opts.host, request.GetAction())
 	reqbs, err := request.Encode()
 	if err != nil {
 		return nil, err
@@ -55,7 +55,12 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	var signData signature.Signature
 	// enable sign
 	if o.opts.signSet > 0 {
-		signData, err = o.opts.signGenerate(request.GetMethod(), request.GetContentType(), request.GetAction(), reqbs)
+		signData, err = o.opts.signGenerate(
+			o.opts.appID,
+			request.GetMethod(),
+			request.GetContentType(),
+			request.GetAction(), reqbs,
+			signature.WithSecret(o.opts.signSecret))
 		if err != nil {
 			return nil, err
 		}
@@ -81,6 +86,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	// if has sign
 	if o.opts.signSet == SignSetlInURL && signData != nil {
 		rawQuery.Add(signature.SignKeySign, signData.GetSign())
+		rawQuery.Add(signature.SignAppID, o.opts.appID)
 		rawQuery.Add(signature.SignKeyNoise, signData.GetNoise())
 		rawQuery.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 	}
@@ -96,6 +102,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	o.opts.AppendHeader(req)
 	if o.opts.signSet == SignSetInHead && signData != nil {
 		req.Header.Add(signature.SignKeySign, signData.GetSign())
+		req.Header.Add(signature.SignAppID, o.opts.appID)
 		req.Header.Add(signature.SignKeyNoise, signData.GetNoise())
 		req.Header.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 	}
@@ -104,7 +111,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 
 // Invoke
 func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, error) {
-	subCtx, cancel := context.WithTimeout(ctx, o.opts.Timeout)
+	subCtx, cancel := context.WithTimeout(ctx, o.opts.timeout)
 	defer cancel()
 	// build newSenderContext
 	sc, err := o.NewSenderContext(subCtx, request)

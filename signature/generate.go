@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func Generate(method, contentType, action string, reqbs []byte, opts ...OptionFunc) (Signature, error) {
+func Generate(appID, method, contentType, action string, reqbs []byte, opts ...OptionFunc) (Signature, error) {
 	signOpt := NewOption()
 	for _, opt := range opts {
 		opt(signOpt)
@@ -36,6 +36,7 @@ func Generate(method, contentType, action string, reqbs []byte, opts ...OptionFu
 		rawValues = us
 	}
 
+	rawValues.Add(SignAppID, appID)
 	rawValues.Add(SignKeyTimestamp, cast.ToString(result.Timestamp))
 	rawValues.Add(SignKeyNoise, result.Noise)
 

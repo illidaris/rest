@@ -29,6 +29,7 @@ func TestVerfiySign(t *testing.T) {
 	testReqVs.Add("id", "1")
 	testReqVs.Add("name", "X")
 
+	appID := "a"
 	secretKey := "asdasdasdasdasdasdasdas"
 	host := "http://host"
 	action := "test"
@@ -36,7 +37,7 @@ func TestVerfiySign(t *testing.T) {
 	convey.Convey("TestVerfiySign", t, func() {
 		convey.Convey("json, sign in head", func() {
 			jsonBs, _ := json.Marshal(testReq)
-			signData, err := Generate(http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -48,6 +49,7 @@ func TestVerfiySign(t *testing.T) {
 
 			req.Header.Add("Content-Type", core.JsonContent.ToCode())
 			req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
 			req.Header.Add(SignKeySign, signData.GetSign())
 
@@ -57,13 +59,14 @@ func TestVerfiySign(t *testing.T) {
 
 		convey.Convey("json, sign in url", func() {
 			jsonBs, _ := json.Marshal(testReq)
-			signData, err := Generate(http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
+			signData, err := Generate("a", http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
 
 			values := url.Values{}
 			values.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+			values.Add(SignAppID, appID)
 			values.Add(SignKeyNoise, signData.GetNoise())
 			values.Add(SignKeySign, signData.GetSign())
 
@@ -79,7 +82,7 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("get url, sign in head", func() {
-			signData, err := Generate(http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -90,6 +93,7 @@ func TestVerfiySign(t *testing.T) {
 			}
 			req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
+			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeySign, signData.GetSign())
 
 			err = VerifySign(req, WithSecret(secretKey))
@@ -97,7 +101,7 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("get url, sign in url", func() {
-			signData, err := Generate(http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -105,6 +109,7 @@ func TestVerfiySign(t *testing.T) {
 			values := url.Values{}
 			values.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 			values.Add(SignKeyNoise, signData.GetNoise())
+			values.Add(SignAppID, appID)
 			values.Add(SignKeySign, signData.GetSign())
 			for k, v := range testReqVs {
 				values[k] = v
@@ -120,7 +125,7 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("form url, sign in head", func() {
-			signData, err := Generate(http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -131,13 +136,14 @@ func TestVerfiySign(t *testing.T) {
 			req.Header.Add("Content-Type", core.FormUrlEncode.ToCode())
 			req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
+			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeySign, signData.GetSign())
 			err = VerifySign(req, WithSecret(secretKey))
 			convey.So(err, convey.ShouldBeNil)
 		})
 
 		convey.Convey("form url, sign in url", func() {
-			signData, err := Generate(http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -145,6 +151,7 @@ func TestVerfiySign(t *testing.T) {
 			values := url.Values{}
 			values.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 			values.Add(SignKeyNoise, signData.GetNoise())
+			values.Add(SignAppID, appID)
 			values.Add(SignKeySign, signData.GetSign())
 
 			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s?%s", host, action, values.Encode()), bytes.NewReader([]byte(testReqVs.Encode())))
@@ -159,7 +166,7 @@ func TestVerfiySign(t *testing.T) {
 
 	convey.Convey("TestVerfiySignOverdue", t, func() {
 		convey.Convey("offset now-121s, verify failed, overdue", func() {
-			signData, err := Generate(http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -173,13 +180,14 @@ func TestVerfiySign(t *testing.T) {
 			req.Header.Add("Content-Type", core.FormUrlEncode.ToCode())
 			req.Header.Add(SignKeyTimestamp, cast.ToString(ts)) // overdue ts
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
+			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeySign, signData.GetSign())
 			err = VerifySign(req, WithSecret(secretKey))
 			convey.So(err, convey.ShouldBeError)
 		})
 
 		convey.Convey("offset now+121s, verify failed, overdue", func() {
-			signData, err := Generate(http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -193,6 +201,7 @@ func TestVerfiySign(t *testing.T) {
 			req.Header.Add("Content-Type", core.FormUrlEncode.ToCode())
 			req.Header.Add(SignKeyTimestamp, cast.ToString(ts)) // overdue ts
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
+			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeySign, signData.GetSign())
 			err = VerifySign(req, WithSecret(secretKey))
 			convey.So(err, convey.ShouldBeError)
@@ -205,11 +214,12 @@ func BenchmarkVerifySign(b *testing.B) {
 	testReqVs.Add("id", "1")
 	testReqVs.Add("name", "X")
 
+	appID := "a"
 	secretKey := "asdasdasdasdasdasdasdas"
 	host := "http://host"
 	action := "test"
 
-	signData, err := Generate(http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+	signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
 	if err != nil {
 		b.Error(err)
 	}
@@ -222,6 +232,7 @@ func BenchmarkVerifySign(b *testing.B) {
 	req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 	req.Header.Add(SignKeyNoise, signData.GetNoise())
 	req.Header.Add(SignKeySign, signData.GetSign())
+	req.Header.Add(SignAppID, appID)
 
 	for n := 0; n < b.N; n++ {
 		err = VerifySign(req, WithSecret(secretKey))
