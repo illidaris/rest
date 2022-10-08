@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	SignAppID        string = "AppID"
-	SignKeySign      string = "Sign"
-	SignKeyTimestamp string = "Ts"
-	SignKeyNoise     string = "Noise"
-	SignBody         string = "Body"
+	SignAppID        string = "app_id"
+	SignKeySign      string = "sign"
+	SignKeyTimestamp string = "ts"
+	SignKeyNoise     string = "noise"
+	SignBody         string = "bs_body"
 )
 
 type GenerateFunc func(string, string, string, string, []byte, ...OptionFunc) (Signature, error)
