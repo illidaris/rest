@@ -1,12 +1,12 @@
 package signature
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
+	"context"
 	"fmt"
-	"math/rand"
-	"strings"
-	"time"
+	"io"
+	"net/http"
+	"net/textproto"
+	"net/url"
 )
 
 const (
@@ -17,39 +17,65 @@ const (
 	SignBody         string = "bs_body"
 )
 
-type GenerateFunc func(string, string, string, string, []byte, ...OptionFunc) (Signature, error)
+type GenerateFunc func(GenerateParam, ...OptionFunc) (Signature, error)
 
-func HashMacSha1(secret string, rawArr ...string) string {
-	raw := strings.Join(rawArr, "&")
-	h := hmac.New(sha1.New, []byte(secret))
-	h.Write([]byte(raw))
-	sign := h.Sum(nil)
-	return fmt.Sprintf("%X", sign)
-}
+type RequestWithContext func(context.Context, string, string, io.Reader) (*http.Request, error)
 
-func DefaultNoiseRand() string {
-	return RandString(6)
-}
+type SignSetMode uint8
 
-func Abs(v int64) int64 {
-	y := v >> 63
-	return (v ^ y) - v
-}
+const (
+	SignSetNil SignSetMode = iota
+	SignSetInHead
+	SignSetlInURL
+)
 
-var defaultLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-func RandString(n int, allowedChars ...[]rune) string {
-	rand.Seed(time.Now().UnixNano())
-	var letters []rune
-	if len(allowedChars) == 0 {
-		letters = defaultLetters
-	} else {
-		letters = allowedChars[0]
+func (s SignSetMode) RequestWithContextFunc(sign Signature, rawQuery url.Values) func(context.Context, string, string, io.Reader) (*http.Request, error) {
+	switch s {
+	case SignSetlInURL:
+		return NewSignInURLRequest(sign, rawQuery)
+	case SignSetInHead:
+		return NewSignInHeadRequest(sign, rawQuery)
+	default:
+		return NewUnSignRequest(nil, rawQuery)
 	}
+}
 
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+func NewUnSignRequest(_ Signature, rawQuery url.Values) func(context.Context, string, string, io.Reader) (*http.Request, error) {
+	return func(ctx context.Context, method, fullUrl string, body io.Reader) (*http.Request, error) {
+		if len(rawQuery) > 0 {
+			fullUrl = fmt.Sprintf("%s?%s", fullUrl, string(rawQuery.Encode()))
+		}
+		return http.NewRequestWithContext(ctx, method, fullUrl, body)
 	}
-	return string(b)
+}
+
+func NewSignInURLRequest(s Signature, rawQuery url.Values) func(context.Context, string, string, io.Reader) (*http.Request, error) {
+	return func(ctx context.Context, method, fullUrl string, body io.Reader) (*http.Request, error) {
+		if rawQuery == nil {
+			rawQuery = make(url.Values)
+		}
+		for k, v := range s.ToMap() {
+			rawQuery[k] = v
+		}
+		if len(rawQuery) > 0 {
+			fullUrl = fmt.Sprintf("%s?%s", fullUrl, string(rawQuery.Encode()))
+		}
+		return http.NewRequestWithContext(ctx, method, fullUrl, body)
+	}
+}
+
+func NewSignInHeadRequest(s Signature, rawQuery url.Values) func(context.Context, string, string, io.Reader) (*http.Request, error) {
+	return func(ctx context.Context, method, fullUrl string, body io.Reader) (*http.Request, error) { // if has sign write to url
+		if len(rawQuery) > 0 {
+			fullUrl = fmt.Sprintf("%s?%s", fullUrl, string(rawQuery.Encode()))
+		}
+		req, err := http.NewRequestWithContext(ctx, method, fullUrl, body)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range s.ToMap() {
+			req.Header[textproto.CanonicalMIMEHeaderKey(k)] = v
+		}
+		return req, err
+	}
 }

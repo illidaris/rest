@@ -9,7 +9,8 @@ import (
 type OptionFunc func(*option)
 
 type option struct {
-	secret       string                                       // Secret
+	appID        string                                       // app id
+	secret       string                                       // secret
 	expire       time.Duration                                //  | Now - Timestamp  | < Expire
 	noiseFunc    func() string                                // noise string, generate n0ise
 	hmacFunc     func(secret string, rawArr ...string) string // hmac func
@@ -38,6 +39,12 @@ func NewOption() *option {
 		noiseFunc:    DefaultNoiseRand,
 		hmacFunc:     HashMacSha1,
 		unSignedKeys: []string{},
+	}
+}
+
+func WithAppID(v string) OptionFunc {
+	return func(opt *option) {
+		opt.appID = v
 	}
 }
 

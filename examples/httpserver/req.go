@@ -5,30 +5,41 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
+	"github.com/illidaris/rest/core"
 	"github.com/illidaris/rest/sender"
 	"github.com/illidaris/rest/signature"
 )
 
-type StudentGetRequest struct {
-	StudentReq
-	Response *StudentResponse `json:"-"`
+var _ = sender.IRequest(&StudentGetRequest{})
+
+type JsonReq struct{}
+
+func (r JsonReq) GetContentType() core.ContentType {
+	return core.JsonContent
 }
 
-func (r *StudentGetRequest) GetContentType() string {
-	return "application/json"
+func (r JsonReq) GetMethod() string {
+	return http.MethodPost
+}
+
+type StudentGetRequest struct {
+	JsonReq
+	StudentReq
+	Response *StudentResponse `json:"-"`
 }
 
 func (r *StudentGetRequest) GetResponse() interface{} {
 	return r.Response
 }
 
-func (r *StudentGetRequest) GetMethod() string {
-	return http.MethodPost
-}
-
 func (r *StudentGetRequest) GetAction() string {
 	return "student"
+}
+
+func (r *StudentGetRequest) GetUrlQuery() url.Values {
+	return url.Values{}
 }
 
 func (r *StudentGetRequest) Encode() ([]byte, error) {
@@ -54,7 +65,7 @@ func StudentGetHttpRequest(ctx context.Context, host string, student StudentReq)
 	}
 
 	s := sender.NewSender(
-		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
+		sender.WithContentType(req.GetContentType()),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)
@@ -68,8 +79,8 @@ func StudentGetHttpSignInHead(ctx context.Context, host string, student StudentR
 	}
 
 	s := sender.NewSender(
-		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
-		sender.WithSignSetMode(sender.SignSetInHead, "aa", signature.Generate),
+		sender.WithContentType(req.GetContentType()),
+		sender.WithSignSetMode(signature.SignSetInHead, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)
@@ -82,8 +93,8 @@ func StudentGetHttpSignInURL(ctx context.Context, host string, student StudentRe
 		Response:   &StudentResponse{},
 	}
 	s := sender.NewSender(
-		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
-		sender.WithSignSetMode(sender.SignSetlInURL, "aa", signature.Generate),
+		sender.WithContentType(req.GetContentType()),
+		sender.WithSignSetMode(signature.SignSetlInURL, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)
@@ -98,7 +109,7 @@ func StudentGetInvoke(ctx context.Context, host string, student StudentReq) (*St
 	}
 
 	s := sender.NewSender(
-		sender.WithHeader(sender.HeaderKeyContentType, req.GetContentType()),
+		sender.WithContentType(req.GetContentType()),
 		sender.WithHost(host),
 	)
 

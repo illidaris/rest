@@ -15,6 +15,19 @@ var mockDb = map[uint64]Student{
 	4: {ID: 4, Name: "Rose", Age: 19, Desc: "a girl"},
 }
 
+func StudentNoSignGet(w http.ResponseWriter, r *http.Request) {
+	result := &StudentResponse{}
+	r.ParseForm()
+	idStr := r.Form.Get("id")
+	if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
+		result.Data = &s
+	} else {
+		result.Code = 0
+	}
+	bs, _ := json.Marshal(result)
+	w.Write(bs)
+}
+
 func StudentGet(w http.ResponseWriter, r *http.Request) {
 	err := signature.VerifySign(r, signature.WithSecret("aa"))
 	result := &StudentResponse{}
@@ -27,7 +40,7 @@ func StudentGet(w http.ResponseWriter, r *http.Request) {
 		if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
 			result.Data = &s
 		} else {
-			result.Code = -1
+			result.Code = 0
 		}
 	}
 	bs, _ := json.Marshal(result)

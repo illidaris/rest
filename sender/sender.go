@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/illidaris/rest/signature"
-	"github.com/spf13/cast"
 )
 
 func NewSender(opts ...Option) *Sender {
@@ -45,25 +44,33 @@ func (o *Sender) do(sc *SenderContext) {
 	}
 }
 
-// newSenderContext new a sender conetxt,
+// GenerateSign generate sign, if signSet > 0
+func (o *Sender) GenerateSign(request IRequest, body []byte) (signature.Signature, error) {
+	if o.opts.signSet > 0 {
+		return o.opts.signGenerate(
+			signature.GenerateParam{
+				Method:      request.GetMethod(),
+				ContentType: request.GetContentType(),
+				Action:      request.GetAction(),
+				UrlQuery:    request.GetUrlQuery(),
+				BsBody:      body,
+			},
+			signature.WithSecret(o.opts.signSecret))
+	}
+	return nil, nil
+}
+
+// NewSenderContext new a sender conetxt,
 func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*SenderContext, error) {
 	fullUrl := fmt.Sprintf("%s/%s", o.opts.host, request.GetAction())
 	reqbs, err := request.Encode()
 	if err != nil {
 		return nil, err
 	}
-	var signData signature.Signature
 	// enable sign
-	if o.opts.signSet > 0 {
-		signData, err = o.opts.signGenerate(
-			o.opts.appID,
-			request.GetMethod(),
-			request.GetContentType(),
-			request.GetAction(), reqbs,
-			signature.WithSecret(o.opts.signSecret))
-		if err != nil {
-			return nil, err
-		}
+	signData, err := o.GenerateSign(request, reqbs)
+	if err != nil {
+		return nil, err
 	}
 	// queries
 	rawQuery := url.Values{}
@@ -83,29 +90,14 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 			body = bytes.NewBuffer(reqbs)
 		}
 	}
-	// if has sign
-	if o.opts.signSet == SignSetlInURL && signData != nil {
-		rawQuery.Add(signature.SignKeySign, signData.GetSign())
-		rawQuery.Add(signature.SignAppID, o.opts.appID)
-		rawQuery.Add(signature.SignKeyNoise, signData.GetNoise())
-		rawQuery.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
-	}
-	if len(rawQuery) > 0 {
-		fullUrl = fmt.Sprintf("%s?%s", fullUrl, string(rawQuery.Encode()))
-	}
 
-	req, err := http.NewRequestWithContext(ctx, request.GetMethod(), fullUrl, body)
+	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
 	}
+
 	// build headers
 	o.opts.AppendHeader(req)
-	if o.opts.signSet == SignSetInHead && signData != nil {
-		req.Header.Add(signature.SignKeySign, signData.GetSign())
-		req.Header.Add(signature.SignAppID, o.opts.appID)
-		req.Header.Add(signature.SignKeyNoise, signData.GetNoise())
-		req.Header.Add(signature.SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
-	}
 	return NewSenderContext(req), nil
 }
 

@@ -37,7 +37,15 @@ func TestVerfiySign(t *testing.T) {
 	convey.Convey("TestVerfiySign", t, func() {
 		convey.Convey("json, sign in head", func() {
 			jsonBs, _ := json.Marshal(testReq)
-			signData, err := Generate(appID, http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
+
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.JsonContent,
+				Action:      action,
+				BsBody:      jsonBs,
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -59,7 +67,15 @@ func TestVerfiySign(t *testing.T) {
 
 		convey.Convey("json, sign in url", func() {
 			jsonBs, _ := json.Marshal(testReq)
-			signData, err := Generate("a", http.MethodPost, core.JsonContent.ToCode(), action, jsonBs, WithSecret(secretKey))
+
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.JsonContent,
+				Action:      action,
+				BsBody:      jsonBs,
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -82,7 +98,14 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("get url, sign in head", func() {
-			signData, err := Generate(appID, http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			p := GenerateParam{
+				Method:      http.MethodGet,
+				ContentType: core.NilContent,
+				Action:      action,
+				UrlQuery:    testReqVs,
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -101,7 +124,15 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("get url, sign in url", func() {
-			signData, err := Generate(appID, http.MethodGet, "", action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+
+			p := GenerateParam{
+				Method:      http.MethodGet,
+				ContentType: core.NilContent,
+				Action:      action,
+				UrlQuery:    testReqVs,
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -125,7 +156,14 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("form url, sign in head", func() {
-			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.FormUrlEncode,
+				Action:      action,
+				BsBody:      []byte(testReqVs.Encode()),
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -143,7 +181,14 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("form url, sign in url", func() {
-			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.FormUrlEncode,
+				Action:      action,
+				BsBody:      []byte(testReqVs.Encode()),
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -166,7 +211,15 @@ func TestVerfiySign(t *testing.T) {
 
 	convey.Convey("TestVerfiySignOverdue", t, func() {
 		convey.Convey("offset now-121s, verify failed, overdue", func() {
-			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.FormUrlEncode,
+				Action:      action,
+				BsBody:      []byte(testReqVs.Encode()),
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -187,7 +240,14 @@ func TestVerfiySign(t *testing.T) {
 		})
 
 		convey.Convey("offset now+121s, verify failed, overdue", func() {
-			signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+			p := GenerateParam{
+				Method:      http.MethodPost,
+				ContentType: core.FormUrlEncode,
+				Action:      action,
+				BsBody:      []byte(testReqVs.Encode()),
+			}
+
+			signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 			if err != nil {
 				t.Error(err)
 			}
@@ -219,7 +279,14 @@ func BenchmarkVerifySign(b *testing.B) {
 	host := "http://host"
 	action := "test"
 
-	signData, err := Generate(appID, http.MethodPost, core.FormUrlEncode.ToCode(), action, []byte(testReqVs.Encode()), WithSecret(secretKey))
+	p := GenerateParam{
+		Method:      http.MethodPost,
+		ContentType: core.FormUrlEncode,
+		Action:      action,
+		BsBody:      []byte(testReqVs.Encode()),
+	}
+
+	signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey))
 	if err != nil {
 		b.Error(err)
 	}

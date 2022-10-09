@@ -4,13 +4,22 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
+	"github.com/illidaris/rest/core"
 	"github.com/spf13/cast"
 )
 
-func Generate(appID, method, contentType, action string, reqbs []byte, opts ...OptionFunc) (Signature, error) {
+type GenerateParam struct {
+	Method      string           // http method
+	ContentType core.ContentType // content type
+	Host        string           // host
+	Action      string           // action
+	UrlQuery    url.Values       // url query params
+	BsBody      []byte           // body, if method is not GET
+}
+
+func Generate(p GenerateParam, opts ...OptionFunc) (Signature, error) {
 	signOpt := NewOption()
 	for _, opt := range opts {
 		opt(signOpt)
@@ -18,25 +27,37 @@ func Generate(appID, method, contentType, action string, reqbs []byte, opts ...O
 
 	rawValues := url.Values{}
 	result := &DefaultSignature{
+		AppID:     signOpt.appID,
 		Timestamp: time.Now().Unix(),
 		Noise:     signOpt.Noise(),
 	}
 
-	paramStr := string(reqbs)
-	if method != http.MethodGet && (contentType == "application/json" || contentType == "application/xml") {
-		rawValues.Add(SignBody, paramStr)
-	} else if strings.Contains(contentType, "multipart/form-data") {
-		// TODO: will be complete
-		return nil, errors.New("no impl")
-	} else {
-		us, err := url.ParseQuery(paramStr)
-		if err != nil {
-			return nil, err
-		}
-		rawValues = us
+	for k, v := range p.UrlQuery {
+		rawValues[k] = v
 	}
 
-	rawValues.Add(SignAppID, appID)
+	if p.Method != http.MethodGet {
+		paramStr := string(p.BsBody)
+		switch p.ContentType {
+		case core.JsonContent:
+			rawValues.Add(SignBody, paramStr)
+		case core.XmlContent:
+			rawValues.Add(SignBody, paramStr)
+		case core.FormUrlEncode:
+			us, err := url.ParseQuery(paramStr)
+			if err != nil {
+				return nil, err
+			}
+			for k, v := range us {
+				rawValues[k] = v
+			}
+		default:
+			// TODO: will be complete
+			return nil, errors.New("no impl")
+		}
+	}
+
+	rawValues.Add(SignAppID, result.AppID)
 	rawValues.Add(SignKeyTimestamp, cast.ToString(result.Timestamp))
 	rawValues.Add(SignKeyNoise, result.Noise)
 
@@ -46,7 +67,7 @@ func Generate(appID, method, contentType, action string, reqbs []byte, opts ...O
 	}
 
 	// format data
-	rawArr := []string{method, url.QueryEscape(action), url.QueryEscape(rawValues.Encode())}
+	rawArr := []string{p.Method, url.QueryEscape(p.Action), url.QueryEscape(rawValues.Encode())}
 	result.Sign = signOpt.HMac(rawArr...)
 	return result, nil
 }

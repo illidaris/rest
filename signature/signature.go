@@ -11,6 +11,7 @@ type Signature interface {
 	GetTimestamp() int64
 	GetNoise() string
 	GetAppID() string
+	ToMap() map[string][]string
 }
 
 func NewSignatureFrmRequest(req *http.Request) Signature {
@@ -52,4 +53,13 @@ func (s *DefaultSignature) GetTimestamp() int64 {
 
 func (s *DefaultSignature) GetNoise() string {
 	return s.Noise
+}
+
+func (s *DefaultSignature) ToMap() map[string][]string {
+	m := make(map[string][]string)
+	m[SignAppID] = []string{s.GetAppID()}
+	m[SignKeyNoise] = []string{s.GetNoise()}
+	m[SignKeyTimestamp] = []string{cast.ToString(s.GetTimestamp())}
+	m[SignKeySign] = []string{s.GetSign()}
+	return m
 }

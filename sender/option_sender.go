@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/illidaris/rest/core"
 	"github.com/illidaris/rest/log"
 	"github.com/illidaris/rest/signature"
 )
@@ -20,7 +21,7 @@ func (f optionFunc) apply(o *sendOptions) {
 
 type sendOptions struct {
 	l            log.ILogger
-	signSet      SignSetMode
+	signSet      signature.SignSetMode
 	signSecret   string
 	signGenerate signature.GenerateFunc
 	client       *http.Client
@@ -49,7 +50,7 @@ func WithLogger(logger log.ILogger) Option {
 	})
 }
 
-func WithSignSetMode(set SignSetMode, secret string, f signature.GenerateFunc) Option {
+func WithSignSetMode(set signature.SignSetMode, secret string, f signature.GenerateFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.signSet = set
 		o.signSecret = secret
@@ -66,6 +67,12 @@ func WithHost(h string) Option {
 func WithHeader(k, v string) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.header[k] = []string{v}
+	})
+}
+
+func WithContentType(t core.ContentType) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.header[HeaderKeyContentType] = []string{t.ToCode()}
 	})
 }
 

@@ -1,6 +1,9 @@
 package sender
 
-import "github.com/illidaris/rest/log"
+import (
+	"github.com/illidaris/rest/log"
+	"github.com/illidaris/rest/signature"
+)
 
 const (
 	HeaderKeyAccept         string = "Accept"
@@ -11,14 +14,6 @@ const (
 	HeaderKeyXRequestID     string = "X-Request-ID"
 )
 
-type SignSetMode uint8
-
-const (
-	SignSetNil SignSetMode = iota
-	SignSetInHead
-	SignSetlInURL
-)
-
 var defaultLogger log.ILogger
 
 func init() {
@@ -27,4 +22,13 @@ func init() {
 
 func SetLogger(l log.ILogger) {
 	defaultLogger = l
+}
+
+func RequestToGenerateParam(req IRequest) signature.GenerateParam {
+	return signature.GenerateParam{
+		Method:      req.GetMethod(),
+		ContentType: req.GetContentType(),
+		Action:      req.GetAction(),
+		UrlQuery:    req.GetUrlQuery(),
+	}
 }

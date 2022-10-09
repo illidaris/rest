@@ -3,10 +3,19 @@ package signature
 import (
 	"net/http"
 	"testing"
+
+	"github.com/illidaris/rest/core"
 )
 
 func TestGenerate(t *testing.T) {
-	_, err := Generate("a", http.MethodGet, "", "abc", []byte("a=b&c=d"), WithSecret("asdasdasdasdasdasdasdas"))
+	_, err := Generate(GenerateParam{
+		Method:      http.MethodGet,
+		ContentType: core.NilContent,
+		Host:        "",
+		Action:      "test",
+		UrlQuery:    map[string][]string{"a": {"abc"}},
+		BsBody:      nil,
+	}, WithSecret("asdasdasdasdasdasdasdas"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -14,6 +23,13 @@ func TestGenerate(t *testing.T) {
 
 func BenchmarkGenerate(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Generate("a", http.MethodGet, "", "abc", []byte("a=b&c=d"), WithSecret("asdasdasdasdasdasdasdas"))
+		Generate(GenerateParam{
+			Method:      http.MethodGet,
+			ContentType: core.NilContent,
+			Host:        "",
+			Action:      "test",
+			UrlQuery:    map[string][]string{"a": {"abc"}},
+			BsBody:      nil,
+		}, WithSecret("asdasdasdasdasdasdasdas"))
 	}
 }
