@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-func TestVerfiySign(t *testing.T) {
+func TestVerifySign(t *testing.T) {
 	type TestReq struct {
 		ID   int64  `json:"id"`
 		Name string `json:"name"`
@@ -263,6 +263,51 @@ func TestVerfiySign(t *testing.T) {
 			req.Header.Add(SignKeyNoise, signData.GetNoise())
 			req.Header.Add(SignAppID, appID)
 			req.Header.Add(SignKeySign, signData.GetSign())
+			err = VerifySign(req, WithSecret(secretKey))
+			convey.So(err, convey.ShouldBeError)
+		})
+
+	})
+}
+
+func TestVerifySign_WithOption(t *testing.T) {
+	testReqVs := url.Values{}
+	testReqVs.Add("id", "1")
+	testReqVs.Add("name", "X")
+
+	appID := "a"
+	secretKey := "asdasdasdasdasdasdasdas"
+	host := "http://host"
+	action := "test"
+
+	convey.Convey("TestVerifySign_WithOption", t, func() {
+		p := GenerateParam{
+			Method:      http.MethodPost,
+			ContentType: core.FormUrlEncode,
+			Action:      action,
+			BsBody:      []byte(testReqVs.Encode()),
+		}
+		signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey), WithUnSignedKey("name"))
+		if err != nil {
+			t.Error(err)
+		}
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s", host, action), bytes.NewReader([]byte(testReqVs.Encode())))
+		if err != nil {
+			t.Error(err)
+		}
+
+		req.Header.Add("Content-Type", core.FormUrlEncode.ToCode())
+		req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+		req.Header.Add(SignKeyNoise, signData.GetNoise())
+		req.Header.Add(SignAppID, appID)
+		req.Header.Add(SignKeySign, signData.GetSign())
+
+		convey.Convey("verify success", func() {
+			err = VerifySign(req, WithSecret(secretKey), WithUnSignedKey("name"))
+			convey.So(err, convey.ShouldBeNil)
+		})
+
+		convey.Convey("verify failed", func() {
 			err = VerifySign(req, WithSecret(secretKey))
 			convey.So(err, convey.ShouldBeError)
 		})

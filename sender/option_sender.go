@@ -33,30 +33,35 @@ type sendOptions struct {
 	headerOption
 }
 
+// WithAppID set app_id pk id
 func WithAppID(v string) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.appID = v
 	})
 }
 
+// WithClient use your http client, default is http.DefaultClient
 func WithClient(c *http.Client) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.client = c
 	})
 }
 
+// WithLogger use your logger, default is fmt
 func WithLogger(logger log.ILogger) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.l = logger
 	})
 }
 
+// WithTimeConsume log print request time consuming
 func WithTimeConsume(v bool) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.timeConsume = v
 	})
 }
 
+// WithSignSetMode enable sign
 func WithSignSetMode(set signature.SignSetMode, secret string, f signature.GenerateFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.signSet = set
@@ -65,30 +70,35 @@ func WithSignSetMode(set signature.SignSetMode, secret string, f signature.Gener
 	})
 }
 
+// WithHost set host, such as http://localhost:8080
 func WithHost(h string) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.host = h
 	})
 }
 
+// WithHeader set header param
 func WithHeader(k, v string) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.header[k] = []string{v}
 	})
 }
 
+// WithContentType set content-type
 func WithContentType(t core.ContentType) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.header[HeaderKeyContentType] = []string{t.ToCode()}
 	})
 }
 
+// WithTimeout request timeout
 func WithTimeout(timeout time.Duration) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.timeout = timeout
 	})
 }
 
+// WithHandler set handlers (AOP), like gin.HandlerFunc
 func WithHandler(b ...HandlerFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		if o.handlers == nil {

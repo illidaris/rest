@@ -7,25 +7,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/illidaris/rest/core"
 	"github.com/illidaris/rest/sender"
 	"github.com/illidaris/rest/signature"
 )
 
 var _ = sender.IRequest(&StudentGetRequest{})
 
-type JsonReq struct{}
-
-func (r JsonReq) GetContentType() core.ContentType {
-	return core.JsonContent
-}
-
-func (r JsonReq) GetMethod() string {
-	return http.MethodPost
-}
-
 type StudentGetRequest struct {
-	JsonReq
+	sender.JSONRequest
 	StudentReq
 	Response *StudentResponse `json:"-"`
 }
@@ -107,12 +96,7 @@ func StudentGetInvoke(ctx context.Context, host string, student StudentReq) (*St
 		Response:   &StudentResponse{},
 	}
 
-	s := sender.NewSender(
-		sender.WithTimeConsume(true),
-		sender.WithHost(host),
-	)
-
-	_, err := s.Invoke(ctx, req)
+	_, err := sender.HttpSendWithSign(ctx, req, host, "aa", sender.WithAppID("test_app"), sender.WithTimeConsume(true))
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package httpserver
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/illidaris/rest/signature"
 	"github.com/spf13/cast"
@@ -18,6 +19,7 @@ var mockDb = map[uint64]Student{
 func StudentNoSignGet(w http.ResponseWriter, r *http.Request) {
 	result := &StudentResponse{}
 	r.ParseForm()
+	time.Sleep(time.Millisecond * 100)
 	idStr := r.Form.Get("id")
 	if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
 		result.Data = &s
@@ -36,6 +38,7 @@ func StudentGet(w http.ResponseWriter, r *http.Request) {
 		result.Message = err.Error()
 	} else {
 		r.ParseForm()
+		time.Sleep(time.Millisecond * 50)
 		idStr := r.Form.Get("id")
 		if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
 			result.Data = &s
