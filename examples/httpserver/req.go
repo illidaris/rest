@@ -79,6 +79,7 @@ func StudentGetHttpSignInHead(ctx context.Context, host string, student StudentR
 
 	s := sender.NewSender(
 		sender.WithAppID("x"),
+		sender.WithTimeConsume(true),
 		sender.WithSignSetMode(signature.SignSetInHead, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
@@ -107,6 +108,7 @@ func StudentGetInvoke(ctx context.Context, host string, student StudentReq) (*St
 	}
 
 	s := sender.NewSender(
+		sender.WithTimeConsume(true),
 		sender.WithHost(host),
 	)
 

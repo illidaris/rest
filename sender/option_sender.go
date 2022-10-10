@@ -51,6 +51,12 @@ func WithLogger(logger log.ILogger) Option {
 	})
 }
 
+func WithTimeConsume(v bool) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.timeConsume = v
+	})
+}
+
 func WithSignSetMode(set signature.SignSetMode, secret string, f signature.GenerateFunc) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.signSet = set

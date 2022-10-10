@@ -50,10 +50,7 @@ func (o *Sender) do(sc *SenderContext) {
 		sc.Abort()
 		return
 	}
-	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, begin", sc.Request.Method, sc.Request.URL.String()))
-	startT := time.Now()
 	res, err := o.opts.client.Do(sc.Request)
-	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, end consume %v", sc.Request.Method, sc.Request.URL.String(), time.Since(startT)))
 	sc.Response = res
 	if err != nil {
 		sc.err = err
@@ -140,9 +137,15 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
+	if o.opts.timeConsume {
+		sc.handlers = append(sc.handlers, o.TimeComsume)
+	}
 	// exec handlers
 	sc.handlers = append(sc.handlers, o.opts.handlers...)
 	// exec do
+	if o.opts.timeConsume {
+		sc.handlers = append(sc.handlers, o.TimeComsume)
+	}
 	sc.handlers = append(sc.handlers, o.do)
 	sc.Next()
 	if sc.err != nil {
