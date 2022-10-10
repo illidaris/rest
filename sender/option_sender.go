@@ -28,6 +28,7 @@ type sendOptions struct {
 	appID        string
 	host         string
 	timeout      time.Duration
+	timeConsume  bool
 	handlers     []HandlerFunc
 	headerOption
 }

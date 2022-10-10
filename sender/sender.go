@@ -34,8 +34,26 @@ type Sender struct {
 	opts sendOptions
 }
 
+func (o *Sender) TimeComsume(sc *SenderContext) {
+	if sc == nil {
+		sc.Abort()
+		return
+	}
+	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, begin", sc.Request.Method, sc.Request.URL.String()))
+	startT := time.Now()
+	sc.Next()
+	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, end consume %v", sc.Request.Method, sc.Request.URL.String(), time.Since(startT)))
+}
+
 func (o *Sender) do(sc *SenderContext) {
+	if sc == nil {
+		sc.Abort()
+		return
+	}
+	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, begin", sc.Request.Method, sc.Request.URL.String()))
+	startT := time.Now()
 	res, err := o.opts.client.Do(sc.Request)
+	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, end consume %v", sc.Request.Method, sc.Request.URL.String(), time.Since(startT)))
 	sc.Response = res
 	if err != nil {
 		sc.err = err
@@ -45,9 +63,9 @@ func (o *Sender) do(sc *SenderContext) {
 }
 
 // GenerateSign generate sign, if signSet > 0
-func (o *Sender) GenerateSign(request IRequest, body []byte) (signature.Signature, error) {
+func (o *Sender) GenerateSign(ctx context.Context, request IRequest, body []byte) (signature.Signature, error) {
 	if o.opts.signSet > 0 {
-		return o.opts.signGenerate(
+		s, err := o.opts.signGenerate(
 			signature.GenerateParam{
 				Method:      request.GetMethod(),
 				ContentType: request.GetContentType(),
@@ -55,7 +73,13 @@ func (o *Sender) GenerateSign(request IRequest, body []byte) (signature.Signatur
 				UrlQuery:    request.GetUrlQuery(),
 				BsBody:      body,
 			},
-			signature.WithSecret(o.opts.signSecret))
+			signature.WithSecret(o.opts.signSecret),
+			signature.WithAppID(o.opts.appID),
+		)
+		if s != nil {
+			o.opts.l.InfoCtx(ctx, s.ToMap().Encode())
+		}
+		return s, err
 	}
 	return nil, nil
 }
@@ -68,7 +92,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 		return nil, err
 	}
 	// enable sign
-	signData, err := o.GenerateSign(request, reqbs)
+	signData, err := o.GenerateSign(ctx, request, reqbs)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +122,12 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 
 	// build headers
 	o.opts.AppendHeader(req)
+
+	// set content type  if sender not define
+	if req.Method != http.MethodGet && req.Header.Get(HeaderKeyContentType) == "" {
+		req.Header.Add(HeaderKeyContentType, request.GetContentType().ToCode())
+	}
+
 	return NewSenderContext(req), nil
 }
 

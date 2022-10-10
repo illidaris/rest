@@ -2,6 +2,7 @@ package signature
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/spf13/cast"
 )
@@ -11,7 +12,7 @@ type Signature interface {
 	GetTimestamp() int64
 	GetNoise() string
 	GetAppID() string
-	ToMap() map[string][]string
+	ToMap() url.Values
 }
 
 func NewSignatureFrmRequest(req *http.Request) Signature {
@@ -55,7 +56,7 @@ func (s *DefaultSignature) GetNoise() string {
 	return s.Noise
 }
 
-func (s *DefaultSignature) ToMap() map[string][]string {
+func (s *DefaultSignature) ToMap() url.Values {
 	m := make(map[string][]string)
 	m[SignAppID] = []string{s.GetAppID()}
 	m[SignKeyNoise] = []string{s.GetNoise()}

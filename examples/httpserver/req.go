@@ -65,7 +65,6 @@ func StudentGetHttpRequest(ctx context.Context, host string, student StudentReq)
 	}
 
 	s := sender.NewSender(
-		sender.WithContentType(req.GetContentType()),
 		sender.WithHost(host),
 	)
 	sCtx, err := s.NewSenderContext(ctx, req)
@@ -79,7 +78,7 @@ func StudentGetHttpSignInHead(ctx context.Context, host string, student StudentR
 	}
 
 	s := sender.NewSender(
-		sender.WithContentType(req.GetContentType()),
+		sender.WithAppID("x"),
 		sender.WithSignSetMode(signature.SignSetInHead, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
@@ -93,7 +92,6 @@ func StudentGetHttpSignInURL(ctx context.Context, host string, student StudentRe
 		Response:   &StudentResponse{},
 	}
 	s := sender.NewSender(
-		sender.WithContentType(req.GetContentType()),
 		sender.WithSignSetMode(signature.SignSetlInURL, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
@@ -109,7 +107,6 @@ func StudentGetInvoke(ctx context.Context, host string, student StudentReq) (*St
 	}
 
 	s := sender.NewSender(
-		sender.WithContentType(req.GetContentType()),
 		sender.WithHost(host),
 	)
 
