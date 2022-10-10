@@ -1,5 +1,5 @@
 # rest
-restful api cleint
+strong constraint api cleint
 
 ## Sender
 Sender is a http client package, decouple `Request`(which you send) and `Send HTTP`(how you send).
