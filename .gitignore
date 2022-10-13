@@ -16,6 +16,7 @@ go.sum
 
 config.toml
 config.*.toml
+cover
 
 include/
 lib/
@@ -23,4 +24,5 @@ lib/
 .idea/
 .vs/
 .vscode/
+.analysis/
 logs/
