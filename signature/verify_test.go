@@ -280,6 +280,34 @@ func TestVerifySign_WithOption(t *testing.T) {
 	host := "http://host"
 	action := "test"
 
+	convey.Convey("TestVerifySign_Delete", t, func() {
+		p := GenerateParam{
+			Method:      http.MethodDelete,
+			ContentType: core.FormUrlEncode,
+			Action:      fmt.Sprintf("%s/%d", action, 1),
+			BsBody:      []byte(testReqVs.Encode()),
+		}
+		signData, err := Generate(p, WithAppID(appID), WithSecret(secretKey), WithUnSignedKey("name"))
+		if err != nil {
+			t.Error(err)
+		}
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/%s", host, p.Action), nil)
+		if err != nil {
+			t.Error(err)
+		}
+
+		req.Header.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
+		req.Header.Add(SignKeyNoise, signData.GetNoise())
+		req.Header.Add(SignAppID, appID)
+		req.Header.Add(SignKeySign, signData.GetSign())
+
+		convey.Convey("verify success", func() {
+			err = VerifySign(req, WithSecret(secretKey), WithUnSignedKey("name"))
+			convey.So(err, convey.ShouldBeNil)
+		})
+
+	})
+
 	convey.Convey("TestVerifySign_WithOption", t, func() {
 		p := GenerateParam{
 			Method:      http.MethodPost,

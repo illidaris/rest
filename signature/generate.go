@@ -36,7 +36,7 @@ func Generate(p GenerateParam, opts ...OptionFunc) (Signature, error) {
 		rawValues[k] = v
 	}
 
-	if p.Method != http.MethodGet {
+	if p.Method != http.MethodGet && p.Method != http.MethodDelete {
 		paramStr := string(p.BsBody)
 		switch p.ContentType {
 		case core.JsonContent:
