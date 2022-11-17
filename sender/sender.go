@@ -117,7 +117,11 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 			body = bytes.NewBuffer(reqbs)
 		}
 	}
-	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), string(reqbs)))
+	requestStr := string(reqbs)
+	if len(requestStr) > 0 {
+		requestStr = requestStr[:4000]
+	}
+	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
 	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
@@ -162,7 +166,11 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, string(respbs)))
+	responseStr := string(respbs)
+	if len(responseStr) > 0 {
+		responseStr = responseStr[:4000]
+	}
+	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
 	// decode bs
 	err = request.Decode(respbs)
 	return request.GetResponse(), err
