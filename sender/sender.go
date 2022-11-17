@@ -118,7 +118,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 		}
 	}
 	requestStr := string(reqbs)
-	if len(requestStr) > 0 {
+	if len(requestStr) > 4000 {
 		requestStr = requestStr[:4000]
 	}
 	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
@@ -167,7 +167,7 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 		return nil, err
 	}
 	responseStr := string(respbs)
-	if len(responseStr) > 0 {
+	if len(responseStr) > 4000 {
 		responseStr = responseStr[:4000]
 	}
 	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
