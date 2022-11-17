@@ -117,7 +117,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 			body = bytes.NewBuffer(reqbs)
 		}
 	}
-
+	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), string(reqbs)))
 	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
