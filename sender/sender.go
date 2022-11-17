@@ -94,7 +94,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 		return nil, err
 	}
 	// queries
-	rawQuery := url.Values{}
+	rawQuery := request.GetUrlQuery()
 	var body io.Reader
 	// if has param data
 	if len(reqbs) > 0 {
@@ -105,7 +105,13 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 			if err != nil {
 				return nil, err
 			} else {
-				rawQuery = us
+				if rawQuery == nil {
+					rawQuery = us
+				} else {
+					for k, v := range us {
+						rawQuery[k] = v
+					}
+				}
 			}
 		} else { // GET param write to body
 			body = bytes.NewBuffer(reqbs)
