@@ -15,6 +15,7 @@ type option struct {
 	noiseFunc    func() string                                // noise string, generate n0ise
 	hmacFunc     func(secret string, rawArr ...string) string // hmac func
 	unSignedKeys []string                                     // no signed key
+	withToken    bool                                         // with token
 }
 
 func (o *option) HMac(rawArr ...string) string {
@@ -81,5 +82,12 @@ func WithUnSignedKey(v ...string) OptionFunc {
 func WithHmacFunc(f func(secret string, rawArr ...string) string) OptionFunc {
 	return func(opt *option) {
 		opt.hmacFunc = f
+	}
+}
+
+// WithToken sign hmac with token
+func WithToken(iswith bool) OptionFunc {
+	return func(opt *option) {
+		opt.withToken = true
 	}
 }

@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -31,6 +32,8 @@ type sendOptions struct {
 	timeConsume  bool
 	handlers     []HandlerFunc
 	headerOption
+	isNoAuthorization bool // use access_token in url, false use Authorization in header
+	getAccessToken    func(ctx context.Context) string
 }
 
 // WithAppID set app_id pk id
@@ -105,5 +108,13 @@ func WithHandler(b ...HandlerFunc) Option {
 			o.handlers = make([]HandlerFunc, 0)
 		}
 		o.handlers = append(o.handlers, b...)
+	})
+}
+
+// WithHandler set handlers (AOP), like gin.HandlerFunc
+func WithAccessToken(isNoAuthorization bool, f func(ctx context.Context) string) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.isNoAuthorization = isNoAuthorization
+		o.getAccessToken = f
 	})
 }

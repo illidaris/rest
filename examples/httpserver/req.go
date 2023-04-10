@@ -82,6 +82,9 @@ func StudentGetHttpSignInURL(ctx context.Context, host string, student StudentRe
 		Response:   &StudentResponse{},
 	}
 	s := sender.NewSender(
+		sender.WithAccessToken(false, func(ctx context.Context) string {
+			return "tokenXXX"
+		}),
 		sender.WithSignSetMode(signature.SignSetlInURL, "aa", signature.Generate),
 		sender.WithHost(host),
 	)
@@ -96,7 +99,31 @@ func StudentGetInvoke(ctx context.Context, host string, student StudentReq) (*St
 		Response:   &StudentResponse{},
 	}
 
-	_, err := sender.HttpSendWithSign(ctx, req, host, "aa", sender.WithAppID("test_app"), sender.WithTimeConsume(true))
+	_, err := sender.HttpSendWithSign(ctx, req, host, "aa",
+		sender.WithAppID("test_app"),
+		sender.WithAccessToken(true, func(ctx context.Context) string {
+			return "tokenA"
+		}),
+		sender.WithTimeConsume(true))
+	if err != nil {
+		return nil, err
+	}
+	if req.Response.Code != 0 {
+		return nil, fmt.Errorf("[%d]%s", req.Response.Code, req.Response.Message)
+	}
+	return req.Response.Data, err
+}
+
+// StudentGetNoTokenInvoke
+func StudentGetNoTokenInvoke(ctx context.Context, host string, student StudentReq) (*Student, error) {
+	req := &StudentGetRequest{
+		StudentReq: student,
+		Response:   &StudentResponse{},
+	}
+
+	_, err := sender.HttpSendWithSign(ctx, req, host, "aa",
+		sender.WithAppID("test_app"),
+		sender.WithTimeConsume(true))
 	if err != nil {
 		return nil, err
 	}

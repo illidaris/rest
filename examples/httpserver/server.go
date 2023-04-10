@@ -31,6 +31,26 @@ func StudentNoSignGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func StudentGet(w http.ResponseWriter, r *http.Request) {
+	err := signature.VerifySign(r, signature.WithSecret("aa"), signature.WithToken(true))
+	result := &StudentResponse{}
+	if err != nil {
+		result.Code = -2
+		result.Message = err.Error()
+	} else {
+		r.ParseForm()
+		time.Sleep(time.Millisecond * 50)
+		idStr := r.Form.Get("id")
+		if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
+			result.Data = &s
+		} else {
+			result.Code = 0
+		}
+	}
+	bs, _ := json.Marshal(result)
+	w.Write(bs)
+}
+
+func StudentGetNoToken(w http.ResponseWriter, r *http.Request) {
 	err := signature.VerifySign(r, signature.WithSecret("aa"))
 	result := &StudentResponse{}
 	if err != nil {

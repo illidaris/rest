@@ -17,6 +17,7 @@ type GenerateParam struct {
 	Action      string           // action
 	UrlQuery    url.Values       // url query params
 	BsBody      []byte           // body, if method is not GET
+	AccessToken string           // access_token
 }
 
 func Generate(p GenerateParam, opts ...OptionFunc) (Signature, error) {
@@ -67,7 +68,10 @@ func Generate(p GenerateParam, opts ...OptionFunc) (Signature, error) {
 	}
 
 	// format data
-	rawArr := []string{p.Method, url.QueryEscape(p.Action), url.QueryEscape(rawValues.Encode())}
+	rawArr := []string{p.Method, url.QueryEscape(p.Action), rawValues.Encode()}
+	if p.AccessToken != "" {
+		rawArr = append(rawArr, url.QueryEscape(p.AccessToken))
+	}
 	result.Sign = signOpt.HMac(rawArr...)
 	return result, nil
 }

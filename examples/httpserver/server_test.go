@@ -45,7 +45,7 @@ func TestStudentGetHttpInHead(t *testing.T) {
 			r, _ := StudentGetHttpSignInHead(ctx, "", req)
 			// mock server
 			mux := http.NewServeMux()
-			mux.HandleFunc("/student", StudentGet)
+			mux.HandleFunc("/student", StudentGetNoToken)
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, r)
 			// get response
@@ -102,6 +102,29 @@ func TestStudentGetInvoke(t *testing.T) {
 			// use sender
 			ctx := context.Background()
 			_, err := StudentGetInvoke(ctx, "http://localhost:8080", d)
+			convey.So(err, convey.ShouldBeNil)
+		})
+	})
+}
+
+func TestStudentGetNotokenInvoke(t *testing.T) {
+	d := StudentReq{ID: 1, Name: "xxx"}
+	convey.Convey("TestSignatureMiddlewareWithGET", t, func() {
+		f := gomonkey.ApplyMethodFunc(reflect.TypeOf(http.DefaultClient), "Do", func(req *http.Request) (*http.Response, error) {
+			// mock server
+			mux := http.NewServeMux()
+			mux.HandleFunc("/student", StudentGetNoToken)
+			w := httptest.NewRecorder()
+			mux.ServeHTTP(w, req)
+			// get response
+			response := w.Result()
+			return response, nil
+		})
+		defer f.Reset()
+		convey.Convey("success test", func() {
+			// use sender
+			ctx := context.Background()
+			_, err := StudentGetNoTokenInvoke(ctx, "http://localhost:8080", d)
 			convey.So(err, convey.ShouldBeNil)
 		})
 	})

@@ -60,7 +60,7 @@ func (o *Sender) do(sc *SenderContext) {
 }
 
 // GenerateSign generate sign, if signSet > 0
-func (o *Sender) GenerateSign(ctx context.Context, request IRequest, body []byte) (signature.Signature, error) {
+func (o *Sender) GenerateSign(ctx context.Context, request IRequest, body []byte, token string) (signature.Signature, error) {
 	if o.opts.signSet > 0 {
 		s, err := o.opts.signGenerate(
 			signature.GenerateParam{
@@ -69,6 +69,7 @@ func (o *Sender) GenerateSign(ctx context.Context, request IRequest, body []byte
 				Action:      request.GetAction(),
 				UrlQuery:    request.GetUrlQuery(),
 				BsBody:      body,
+				AccessToken: token,
 			},
 			signature.WithSecret(o.opts.signSecret),
 			signature.WithAppID(o.opts.appID),
@@ -88,8 +89,12 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	if err != nil {
 		return nil, err
 	}
+	var accessToken string
+	if o.opts.getAccessToken != nil {
+		accessToken = o.opts.getAccessToken(ctx)
+	}
 	// enable sign
-	signData, err := o.GenerateSign(ctx, request, reqbs)
+	signData, err := o.GenerateSign(ctx, request, reqbs, accessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +138,16 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	// set content type  if sender not define
 	if req.Method != http.MethodGet && req.Header.Get(HeaderKeyContentType) == "" {
 		req.Header.Add(HeaderKeyContentType, request.GetContentType().ToCode())
+	}
+
+	if accessToken != "" {
+		if o.opts.isNoAuthorization {
+			raw := req.URL.Query()
+			raw.Add(signature.SignToken, accessToken)
+			req.URL.RawQuery = raw.Encode()
+		} else {
+			req.Header.Add(signature.SignAuthorization, fmt.Sprintf("Bearer %s", accessToken))
+		}
 	}
 
 	return NewSenderContext(req), nil

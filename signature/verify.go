@@ -29,7 +29,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 		req.ParseForm()
 		us := req.Form
 		for k, v := range us {
-			if k != SignKeySign && k != SignKeyNoise && k != SignKeyTimestamp && k != SignAppID {
+			if k != SignKeySign && k != SignKeyNoise && k != SignKeyTimestamp && k != SignAppID && k != SignToken {
 				params[k] = v
 			}
 		}
@@ -55,7 +55,24 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	for _, v := range signOpt.unSignedKeys {
 		params.Del(v)
 	}
-	rawArr := []string{req.Method, url.QueryEscape(action), url.QueryEscape(params.Encode())}
+	// sign with token && param has not "access_token"
+	accessToken := ""
+	if signOpt.withToken {
+		q := req.URL.Query()
+		if q.Has(SignToken) {
+			accessToken = q.Get(SignToken)
+		} else {
+			v := req.Header.Get(SignAuthorization)
+			keys := strings.Split(v, " ")
+			if len(keys) > 1 {
+				accessToken = keys[1]
+			}
+		}
+	}
+	rawArr := []string{req.Method, url.QueryEscape(action), params.Encode()}
+	if signOpt.withToken {
+		rawArr = append(rawArr, url.QueryEscape(accessToken))
+	}
 	rightSign := signOpt.HMac(rawArr...)
 	if rightSign != signFrmRquest.GetSign() {
 		return errors.New("sign is error")
