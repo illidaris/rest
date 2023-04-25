@@ -59,8 +59,8 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	accessToken := ""
 	if signOpt.withToken {
 		q := req.URL.Query()
-		if q.Has(SignToken) {
-			accessToken = q.Get(SignToken)
+		if t := q.Get(SignToken); t != "" {
+			accessToken = t
 		} else {
 			v := req.Header.Get(SignAuthorization)
 			keys := strings.Split(v, " ")
