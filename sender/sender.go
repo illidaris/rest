@@ -14,10 +14,12 @@ import (
 
 func NewSender(opts ...Option) *Sender {
 	sopts := sendOptions{
-		client:   http.DefaultClient,
-		timeout:  time.Second * 5,
-		handlers: []HandlerFunc{},
-		l:        defaultLogger,
+		client:         http.DefaultClient,
+		timeout:        time.Second * 5,
+		handlers:       []HandlerFunc{},
+		l:              defaultLogger,
+		requestMaxLen:  1024,
+		responseMaxLen: 2048,
 	}
 	sopts.header = map[string][]string{}
 
@@ -122,11 +124,17 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 			body = bytes.NewBuffer(reqbs)
 		}
 	}
-	requestStr := string(reqbs)
-	if len(requestStr) > 4000 {
-		requestStr = requestStr[:4000]
+
+	// print request log
+	if o.opts.requestMaxLen > 0 {
+		requestStr := string(reqbs)
+		cutL := len(requestStr)
+		if uint64(cutL) > o.opts.requestMaxLen {
+			requestStr = requestStr[:int(o.opts.requestMaxLen)]
+		}
+		o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
 	}
-	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
+
 	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
@@ -181,11 +189,17 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	responseStr := string(respbs)
-	if len(responseStr) > 4000 {
-		responseStr = responseStr[:4000]
+
+	// print response log
+	if o.opts.responseMaxLen > 0 {
+		responseStr := string(respbs)
+		cutL := len(responseStr)
+		if uint64(cutL) > o.opts.responseMaxLen {
+			responseStr = responseStr[:int(o.opts.responseMaxLen)]
+		}
+		o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
 	}
-	o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
+
 	// decode bs
 	err = request.Decode(respbs)
 	return request.GetResponse(), err

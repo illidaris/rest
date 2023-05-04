@@ -21,16 +21,18 @@ func (f optionFunc) apply(o *sendOptions) {
 }
 
 type sendOptions struct {
-	l            log.ILogger
-	signSet      signature.SignSetMode
-	signSecret   string
-	signGenerate signature.GenerateFunc
-	client       *http.Client
-	appID        string
-	host         string
-	timeout      time.Duration
-	timeConsume  bool
-	handlers     []HandlerFunc
+	l              log.ILogger
+	signSet        signature.SignSetMode
+	signSecret     string
+	signGenerate   signature.GenerateFunc
+	client         *http.Client
+	appID          string
+	host           string
+	timeout        time.Duration
+	timeConsume    bool
+	requestMaxLen  uint64
+	responseMaxLen uint64
+	handlers       []HandlerFunc
 	headerOption
 	isNoAuthorization bool // use access_token in url, false use Authorization in header
 	getAccessToken    func(ctx context.Context) string
@@ -61,6 +63,20 @@ func WithLogger(logger log.ILogger) Option {
 func WithTimeConsume(v bool) Option {
 	return optionFunc(func(o *sendOptions) {
 		o.timeConsume = v
+	})
+}
+
+// WithRequestPrint log print request
+func WithRequestPrint(v uint64) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.requestMaxLen = v
+	})
+}
+
+// WithResponsePrint log print response
+func WithResponsePrint(v uint64) Option {
+	return optionFunc(func(o *sendOptions) {
+		o.responseMaxLen = v
 	})
 }
 
