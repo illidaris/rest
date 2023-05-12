@@ -1,6 +1,9 @@
 package sender
 
 import (
+	"context"
+
+	"github.com/illidaris/core"
 	"github.com/illidaris/rest/log"
 	"github.com/illidaris/rest/signature"
 )
@@ -31,4 +34,15 @@ func RequestToGenerateParam(req IRequest) signature.GenerateParam {
 		Action:      req.GetAction(),
 		UrlQuery:    req.GetUrlQuery(),
 	}
+}
+
+func WithTraceID(ctx context.Context) string {
+	v := ctx.Value(core.TraceID)
+	if v == nil {
+		return ""
+	}
+	if trace, ok := v.(string); ok {
+		return trace
+	}
+	return ""
 }

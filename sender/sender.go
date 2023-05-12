@@ -139,6 +139,10 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	if err != nil {
 		return nil, err
 	}
+	// use traceId from context
+	if v := WithTraceID(ctx); v != "" {
+		req.Header.Add(HeaderKeyXRequestID, v)
+	}
 
 	// build headers
 	o.opts.AppendHeader(req)
