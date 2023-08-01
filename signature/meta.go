@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SignAppID         string = "app_id"
+	SignAppID         string = "app"
 	SignKeySign       string = "sign"
 	SignKeyTimestamp  string = "ts"
 	SignKeyNoise      string = "noise"
