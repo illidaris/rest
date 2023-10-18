@@ -17,6 +17,10 @@ type IRequest interface {
 	Decode([]byte) error              // []byte Marshal to Response
 }
 
+type IMultipartContent interface {
+	GetMultiContentType() string
+}
+
 type Request struct {
 	Response interface{}
 }

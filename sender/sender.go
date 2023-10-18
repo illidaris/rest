@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/illidaris/rest/core"
 	"github.com/illidaris/rest/signature"
 )
 
@@ -149,7 +150,11 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 
 	// set content type  if sender not define
 	if req.Method != http.MethodGet && req.Header.Get(HeaderKeyContentType) == "" {
-		req.Header.Add(HeaderKeyContentType, request.GetContentType().ToCode())
+		contentType := request.GetContentType().ToCode()
+		if v, ok := request.(IMultipartContent); request.GetContentType() == core.FormMulit && ok {
+			contentType = v.GetMultiContentType()
+		}
+		req.Header.Add(HeaderKeyContentType, contentType)
 	}
 
 	if accessToken != "" {
