@@ -18,7 +18,7 @@ var mockDb = map[uint64]Student{
 
 func StudentNoSignGet(w http.ResponseWriter, r *http.Request) {
 	result := &StudentResponse{}
-	r.ParseForm()
+	_ = r.ParseForm()
 	time.Sleep(time.Millisecond * 100)
 	idStr := r.Form.Get("id")
 	if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
@@ -27,7 +27,7 @@ func StudentNoSignGet(w http.ResponseWriter, r *http.Request) {
 		result.Code = 0
 	}
 	bs, _ := json.Marshal(result)
-	w.Write(bs)
+	_, _ = w.Write(bs)
 }
 
 func StudentGet(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func StudentGet(w http.ResponseWriter, r *http.Request) {
 		result.Code = -2
 		result.Message = err.Error()
 	} else {
-		r.ParseForm()
+		_ = r.ParseForm()
 		time.Sleep(time.Millisecond * 50)
 		idStr := r.Form.Get("id")
 		if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
@@ -47,7 +47,7 @@ func StudentGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	bs, _ := json.Marshal(result)
-	w.Write(bs)
+	_, _ = w.Write(bs)
 }
 
 func StudentGetNoToken(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +57,7 @@ func StudentGetNoToken(w http.ResponseWriter, r *http.Request) {
 		result.Code = -2
 		result.Message = err.Error()
 	} else {
-		r.ParseForm()
+		_ = r.ParseForm()
 		time.Sleep(time.Millisecond * 50)
 		idStr := r.Form.Get("id")
 		if s, ok := mockDb[cast.ToUint64(idStr)]; ok {
@@ -67,5 +67,5 @@ func StudentGetNoToken(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	bs, _ := json.Marshal(result)
-	w.Write(bs)
+	_, _ = w.Write(bs)
 }

@@ -26,7 +26,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	params := url.Values{} // params will be hash to sgin
 	// form
 	if req.Method == http.MethodGet || req.Method == http.MethodDelete || contentType == core.FormUrlEncode.ToCode() {
-		req.ParseForm()
+		_ = req.ParseForm()
 		us := req.Form
 		for k, v := range us {
 			if k != SignKeySign && k != SignKeyNoise && k != SignKeyTimestamp && k != SignAppID && k != SignToken {
