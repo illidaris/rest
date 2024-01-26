@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 
@@ -19,6 +20,7 @@ type IRequest interface {
 
 type IMultipartContent interface {
 	GetMultiContentType() string
+	GetBody() io.Reader
 }
 
 type Request struct {

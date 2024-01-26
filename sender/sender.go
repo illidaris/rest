@@ -96,6 +96,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	if o.opts.getAccessToken != nil {
 		accessToken = o.opts.getAccessToken(ctx)
 	}
+	contentType := request.GetContentType().ToCode()
 	// enable sign
 	signData, err := o.GenerateSign(ctx, request, reqbs, accessToken)
 	if err != nil {
@@ -136,6 +137,11 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 		o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
 	}
 
+	if v, ok := request.(IMultipartContent); request.GetContentType() == core.FormMulit && ok {
+		contentType = v.GetMultiContentType()
+		body = v.GetBody()
+	}
+
 	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
 	if err != nil {
 		return nil, err
@@ -150,10 +156,6 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 
 	// set content type  if sender not define
 	if req.Method != http.MethodGet && req.Header.Get(HeaderKeyContentType) == "" {
-		contentType := request.GetContentType().ToCode()
-		if v, ok := request.(IMultipartContent); request.GetContentType() == core.FormMulit && ok {
-			contentType = v.GetMultiContentType()
-		}
 		req.Header.Add(HeaderKeyContentType, contentType)
 	}
 
