@@ -19,8 +19,8 @@ type IRequest interface {
 }
 
 type IMultipartContent interface {
-	GetMultiContentType() string
-	GetBody() io.Reader
+	GetMultiContentType() string // Deprecated
+	GetBodyWithContentType() (io.Reader, string)
 }
 
 type Request struct {

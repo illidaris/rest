@@ -138,8 +138,7 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 	}
 
 	if v, ok := request.(IMultipartContent); request.GetContentType() == core.FormMulit && ok {
-		contentType = v.GetMultiContentType()
-		body = v.GetBody()
+		body, contentType = v.GetBodyWithContentType()
 	}
 
 	req, err := o.opts.signSet.RequestWithContextFunc(signData, rawQuery)(ctx, request.GetMethod(), fullUrl, body)
