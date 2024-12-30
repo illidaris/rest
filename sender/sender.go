@@ -180,9 +180,6 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	if o.opts.timeConsume {
-		sc.handlers = append(sc.handlers, o.TimeComsume)
-	}
 	// exec handlers
 	sc.handlers = append(sc.handlers, o.opts.handlers...)
 	// exec do
