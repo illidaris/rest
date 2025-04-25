@@ -16,6 +16,7 @@ type option struct {
 	hmacFunc     func(secret string, rawArr ...string) string // hmac func
 	unSignedKeys []string                                     // no signed key
 	withToken    bool                                         // with token
+	ignoreNoImpl bool                                         // ignore no impl error
 }
 
 func (o *option) HMac(rawArr ...string) string {
@@ -89,5 +90,12 @@ func WithHmacFunc(f func(secret string, rawArr ...string) string) OptionFunc {
 func WithToken(iswith bool) OptionFunc {
 	return func(opt *option) {
 		opt.withToken = true
+	}
+}
+
+// WithIgnoreNoImpl ignore no impl error
+func WithIgnoreNoImpl() OptionFunc {
+	return func(opt *option) {
+		opt.ignoreNoImpl = true
 	}
 }

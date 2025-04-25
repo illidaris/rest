@@ -18,7 +18,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 	}
 	contentType := req.Header.Get("Content-Type")
 	// take sign data from request
-	signFrmRquest, params := NewSignatureFrmRequest(req)  // sign data from request
+	signFrmRquest, params := NewSignatureFrmRequest(req) // sign data from request
 	if err := signOpt.Valid(signFrmRquest.GetTimestamp()); err != nil {
 		return err
 	}
@@ -33,6 +33,9 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 			}
 		}
 	} else if strings.Contains(contentType, "multipart/form-data") {
+		if signOpt.ignoreNoImpl {
+			return nil
+		}
 		// TODO: will be complete
 		return errors.New("no impl")
 	} else {
