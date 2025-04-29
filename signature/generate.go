@@ -68,9 +68,9 @@ func Generate(p GenerateParam, opts ...OptionFunc) (Signature, error) {
 	}
 
 	// format data
-	rawArr := []string{p.Method, url.QueryEscape(p.Action), rawValues.Encode()}
+	rawArr := []string{p.Method, signOpt.encodeFunc(p.Action), ValuesToString(rawValues, signOpt.encodeFunc)}
 	if p.AccessToken != "" {
-		rawArr = append(rawArr, url.QueryEscape(p.AccessToken))
+		rawArr = append(rawArr, signOpt.encodeFunc(p.AccessToken))
 	}
 	result.Sign = signOpt.HMac(rawArr...)
 	return result, nil

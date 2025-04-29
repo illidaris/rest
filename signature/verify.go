@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/illidaris/rest/core"
@@ -71,13 +72,38 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 			}
 		}
 	}
-	rawArr := []string{req.Method, url.QueryEscape(action), params.Encode()}
+	rawArr := []string{req.Method, signOpt.encodeFunc(action), ValuesToString(params, signOpt.encodeFunc)}
 	if signOpt.withToken {
-		rawArr = append(rawArr, url.QueryEscape(accessToken))
+		rawArr = append(rawArr, signOpt.encodeFunc(accessToken))
 	}
 	rightSign := signOpt.HMac(rawArr...)
 	if rightSign != signFrmRquest.GetSign() {
 		return errors.New("sign is error")
 	}
 	return nil
+}
+
+func ValuesToString(v url.Values, encode func(string) string) string {
+	if v == nil {
+		return ""
+	}
+	var buf strings.Builder
+	keys := make([]string, 0, len(v))
+	for k := range v {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		vs := v[k]
+		keyEscaped := encode(k)
+		for _, v := range vs {
+			if buf.Len() > 0 {
+				buf.WriteByte('&')
+			}
+			buf.WriteString(keyEscaped)
+			buf.WriteByte('=')
+			buf.WriteString(encode(v))
+		}
+	}
+	return buf.String()
 }

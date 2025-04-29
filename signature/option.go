@@ -3,6 +3,7 @@ package signature
 import (
 	"fmt"
 	"math"
+	"net/url"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type option struct {
 	unSignedKeys []string                                     // no signed key
 	withToken    bool                                         // with token
 	ignoreNoImpl bool                                         // ignore no impl error
+	encodeFunc   func(string) string                          // field encode func
 }
 
 func (o *option) HMac(rawArr ...string) string {
@@ -41,6 +43,9 @@ func NewOption() *option {
 		noiseFunc:    DefaultNoiseRand,
 		hmacFunc:     HashMacSha1,
 		unSignedKeys: []string{},
+		encodeFunc: func(v string) string {
+			return url.QueryEscape(v)
+		},
 	}
 }
 
@@ -97,5 +102,12 @@ func WithToken(iswith bool) OptionFunc {
 func WithIgnoreNoImpl() OptionFunc {
 	return func(opt *option) {
 		opt.ignoreNoImpl = true
+	}
+}
+
+// WithIgnoreNoImpl set field encode func
+func WithEncodeFunc(f func(string) string) OptionFunc {
+	return func(opt *option) {
+		opt.encodeFunc = f
 	}
 }

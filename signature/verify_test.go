@@ -22,7 +22,7 @@ func TestVerifySign(t *testing.T) {
 
 	testReq := &TestReq{
 		ID:   1,
-		Name: "X",
+		Name: "X?@ !",
 	}
 
 	testReqVs := url.Values{}
@@ -80,11 +80,14 @@ func TestVerifySign(t *testing.T) {
 				t.Error(err)
 			}
 
+			noiseStr := signData.GetNoise()
+			signStr := signData.GetSign()
+
 			values := url.Values{}
 			values.Add(SignKeyTimestamp, cast.ToString(signData.GetTimestamp()))
 			values.Add(SignAppID, appID)
-			values.Add(SignKeyNoise, signData.GetNoise())
-			values.Add(SignKeySign, signData.GetSign())
+			values.Add(SignKeyNoise, noiseStr)
+			values.Add(SignKeySign, signStr)
 
 			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s?%s", host, action, values.Encode()), bytes.NewReader(jsonBs))
 			if err != nil {
