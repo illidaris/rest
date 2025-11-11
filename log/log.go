@@ -43,29 +43,17 @@ type DefaultLogger struct {
 }
 
 func (l *DefaultLogger) DebugCtx(ctx context.Context, msg string) {
-	if RestLogIgnoreFrmCtx(ctx) {
-		return
-	}
 	fmt.Println(msg)
 }
 
 func (l *DefaultLogger) InfoCtx(ctx context.Context, msg string) {
-	if RestLogIgnoreFrmCtx(ctx) {
-		return
-	}
 	fmt.Println(msg)
 }
 
 func (l *DefaultLogger) WarnCtx(ctx context.Context, msg string) {
-	if RestLogIgnoreFrmCtx(ctx) {
-		return
-	}
 	fmt.Println(msg)
 }
 
 func (l *DefaultLogger) ErrorCtx(ctx context.Context, msg string) {
-	if RestLogIgnoreFrmCtx(ctx) {
-		return
-	}
 	fmt.Println(msg)
 }

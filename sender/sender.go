@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/illidaris/rest/core"
+	"github.com/illidaris/rest/log"
 	"github.com/illidaris/rest/signature"
 )
 
@@ -42,10 +43,14 @@ func (o *Sender) TimeComsume(sc *SenderContext) {
 		sc.Abort()
 		return
 	}
-	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, begin", sc.Request.Method, sc.Request.URL.String()))
+	if !log.RestLogIgnoreFrmCtx(sc.Request.Context()) {
+		o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, begin", sc.Request.Method, sc.Request.URL.String()))
+	}
 	startT := time.Now()
 	sc.Next()
-	o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, end consume %v", sc.Request.Method, sc.Request.URL.String(), time.Since(startT)))
+	if !log.RestLogIgnoreFrmCtx(sc.Request.Context()) {
+		o.opts.l.InfoCtx(sc.Request.Context(), fmt.Sprintf("[%s]%s, end consume %v", sc.Request.Method, sc.Request.URL.String(), time.Since(startT)))
+	}
 }
 
 func (o *Sender) do(sc *SenderContext) {
@@ -78,7 +83,9 @@ func (o *Sender) GenerateSign(ctx context.Context, request IRequest, body []byte
 			signature.WithAppID(o.opts.appID),
 		)
 		if s != nil {
-			o.opts.l.InfoCtx(ctx, s.ToMap().Encode())
+			if !log.RestLogIgnoreFrmCtx(ctx) {
+				o.opts.l.InfoCtx(ctx, s.ToMap().Encode())
+			}
 		}
 		return s, err
 	}
@@ -134,7 +141,9 @@ func (o *Sender) NewSenderContext(ctx context.Context, request IRequest) (*Sende
 		if uint64(cutL) > o.opts.requestMaxLen {
 			requestStr = requestStr[:int(o.opts.requestMaxLen)]
 		}
-		o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
+		if !log.RestLogIgnoreFrmCtx(ctx) {
+			o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,%s,request:%s", fullUrl, rawQuery.Encode(), requestStr))
+		}
 	}
 
 	if v, ok := request.(IMultipartContent); request.GetContentType() == core.FormMulit && ok {
@@ -204,7 +213,9 @@ func (o *Sender) Invoke(ctx context.Context, request IRequest) (interface{}, err
 		if uint64(cutL) > o.opts.responseMaxLen {
 			responseStr = responseStr[:int(o.opts.responseMaxLen)]
 		}
-		o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
+		if !log.RestLogIgnoreFrmCtx(ctx) {
+			o.opts.l.InfoCtx(ctx, fmt.Sprintf("%s,response:%s", sc.Request.URL, responseStr))
+		}
 	}
 
 	// decode bs
