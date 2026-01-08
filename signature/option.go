@@ -94,7 +94,7 @@ func WithHmacFunc(f func(secret string, rawArr ...string) string) OptionFunc {
 // WithToken sign hmac with token
 func WithToken(iswith bool) OptionFunc {
 	return func(opt *option) {
-		opt.withToken = true
+		opt.withToken = iswith
 	}
 }
 
