@@ -73,7 +73,7 @@ func VerifySign(req *http.Request, opts ...OptionFunc) error {
 		}
 	}
 	rawArr := []string{req.Method, signOpt.encodeFunc(action), ValuesToString(params, signOpt.encodeFunc)}
-	if signOpt.withToken {
+	if signOpt.withToken && accessToken != "" {
 		rawArr = append(rawArr, signOpt.encodeFunc(accessToken))
 	}
 	rightSign := signOpt.HMac(rawArr...)
